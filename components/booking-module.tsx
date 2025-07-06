@@ -17,6 +17,7 @@ import { ru } from "date-fns/locale"
 import { Checkbox } from "@/components/ui/checkbox"
 import { TrainerBooking } from "./trainer-booking"
 import { PaymentModal } from "./payment/PaymentModal"
+import { ADMIN_COURTS, isSlotOccupied, getAdminSlotPrice } from "@/lib/admin-data"
 
 // Types
 interface TimeSlot {
@@ -42,7 +43,7 @@ interface BookingState {
 }
 
 type BookingAction =
-  | { type: "TOGGLE_SLOT"; payload: { courtId: string; timeSlot: string } }
+  | { type: "TOGGLE_SLOT"; payload: { courtId: string; timeSlot: string; courtData: Court[] } }
   | { type: "CLEAR_SELECTION" }
   | { type: "SET_DATE"; payload: Date }
   | { type: "SET_COURT_TYPE_FILTER"; payload: string }
@@ -52,12 +53,12 @@ type BookingAction =
 function bookingReducer(state: BookingState, action: BookingAction): BookingState {
   switch (action.type) {
     case "TOGGLE_SLOT": {
-      const { courtId, timeSlot } = action.payload
+      const { courtId, timeSlot, courtData } = action.payload
       const currentSelection = state.selectedSlots
 
       if (!currentSelection || currentSelection.courtId !== courtId) {
         // Start new selection on different court
-        const court = courts.find((c) => c.id === courtId)
+        const court = courtData.find((c) => c.id === courtId)
         const slot = court?.slots.find((s) => s.time === timeSlot)
         if (!slot) return state
 
@@ -87,7 +88,7 @@ function bookingReducer(state: BookingState, action: BookingAction): BookingStat
         const isAdjacent = newSlotIndex === firstSlotIndex - 1 || newSlotIndex === lastSlotIndex + 1
 
         if (isAdjacent) {
-          const court = courts.find((c) => c.id === courtId)
+          const court = courtData.find((c) => c.id === courtId)
           const slot = court?.slots.find((s) => s.time === timeSlot)
           if (!slot) return state
 
@@ -119,7 +120,7 @@ function bookingReducer(state: BookingState, action: BookingAction): BookingStat
             return { ...state, selectedSlots: null }
           }
 
-          const court = courts.find((c) => c.id === courtId)
+          const court = courtData.find((c) => c.id === courtId)
           const totalPrice = timeSlots.reduce((sum, time) => {
             const slotPrice = court?.slots.find((s) => s.time === time)?.price || 0
             return sum + slotPrice
@@ -154,28 +155,6 @@ function bookingReducer(state: BookingState, action: BookingAction): BookingStat
   }
 }
 
-// Pricing logic
-const calculatePrice = (basePrice: number, time: string, isWeekend = false): number => {
-  const hour = Number.parseInt(time.split(":")[0])
-  let multiplier = 1.0
-
-  // Time multipliers
-  if (hour >= 8 && hour < 16) {
-    multiplier = 0.8 // off-peak
-  } else if (hour >= 16 && hour < 19) {
-    multiplier = 1.0 // standard
-  } else if (hour >= 19 && hour < 22) {
-    multiplier = 1.3 // peak
-  }
-
-  // Weekend multiplier
-  if (isWeekend) {
-    multiplier *= 1.3
-  }
-
-  return Math.round(basePrice * multiplier)
-}
-
 // Generate time slots
 const generateTimeSlots = (): { time: string }[] => {
   const slots: { time: string }[] = []
@@ -188,28 +167,23 @@ const generateTimeSlots = (): { time: string }[] => {
   return slots
 }
 
-// Generate courts with pricing
+// Generate courts with admin data synchronization
 const generateCourts = (selectedDate: Date): Court[] => {
-  const isWeekend = selectedDate.getDay() === 0 || selectedDate.getDay() === 6
+  const dateString = format(selectedDate, "yyyy-MM-dd")
   const timeSlots = generateTimeSlots()
 
-  return [
-    { id: "1", name: "Корт 1 (Хард)", type: "hard", basePrice: 600 },
-    { id: "2", name: "Корт 2 (Хард)", type: "hard", basePrice: 480 },
-    { id: "3", name: "Корт 3 (Грунт)", type: "clay", basePrice: 720 },
-    { id: "4", name: "Корт 4 (Грунт)", type: "clay", basePrice: 600 },
-    { id: "5", name: "Корт 5 (Крытый)", type: "indoor", basePrice: 480 },
-  ].map((court) => ({
-    ...court,
+  return ADMIN_COURTS.map((adminCourt) => ({
+    id: adminCourt.id,
+    name: adminCourt.name,
+    type: adminCourt.type,
+    basePrice: adminCourt.basePrice,
     slots: timeSlots.map(({ time }) => ({
       time,
-      available: Math.random() > 0.15, // 15% occupied
-      price: calculatePrice(court.basePrice, time, isWeekend),
+      available: !isSlotOccupied(adminCourt.id, dateString, time),
+      price: getAdminSlotPrice(adminCourt.id, time),
     })),
   }))
 }
-
-const courts = generateCourts(new Date())
 
 interface BookingModuleProps {
   onClose: () => void
@@ -238,6 +212,9 @@ export function BookingModule({ onClose }: BookingModuleProps) {
   const [showPayment, setShowPayment] = useState(false)
   const [paymentData, setPaymentData] = useState(null)
 
+  // Generate courts with real-time admin data
+  const courts = generateCourts(state.selectedDate)
+
   const onSuccess = () => {
     dispatch({ type: "SHOW_SUCCESS", payload: true })
   }
@@ -255,12 +232,13 @@ export function BookingModule({ onClose }: BookingModuleProps) {
     if (!available) {
       toast({
         title: "Слот недоступен",
+        description: "Это время уже забронировано",
         variant: "destructive",
       })
       return
     }
 
-    dispatch({ type: "TOGGLE_SLOT", payload: { courtId, timeSlot: time } })
+    dispatch({ type: "TOGGLE_SLOT", payload: { courtId, timeSlot: time, courtData: courts } })
   }
 
   const filteredCourts = courts.filter((court) => {
@@ -363,6 +341,7 @@ export function BookingModule({ onClose }: BookingModuleProps) {
                     selectedDate={state.selectedDate}
                     onNext={() => dispatch({ type: "SHOW_CONFIRMATION", payload: true })}
                     allTimeSlots={allTimeSlots}
+                    courts={courts}
                   />
                 </div>
               )}
@@ -436,6 +415,7 @@ export function BookingModule({ onClose }: BookingModuleProps) {
             onOpenChange={(open) => dispatch({ type: "SHOW_SUCCESS", payload: open })}
             selectedSlots={state.selectedSlots}
             onClose={onClose}
+            courts={courts}
           />
         )}
 
@@ -531,7 +511,7 @@ function CourtBookingView({
         <div className="mb-4">
           <div className="text-sm text-gray-600 bg-blue-50 p-3 rounded-lg flex items-center gap-2">
             <div className="w-3 h-3 bg-[#4285f4] rounded"></div>
-            Нажмите на слоты для выбора времени • Минимум 60 минут
+            <div class="w-3 h-3 bg-[#4285f4] rounded"></div>Нажмите на слоты для выбора времени • Минимум 60 минут
           </div>
         </div>
 
@@ -644,9 +624,10 @@ interface BookingSummaryProps {
   selectedDate: Date
   onNext: () => void
   allTimeSlots: string[]
+  courts: Court[]
 }
 
-function BookingSummary({ selectedSlots, selectedDate, onNext, allTimeSlots }: BookingSummaryProps) {
+function BookingSummary({ selectedSlots, selectedDate, onNext, allTimeSlots, courts }: BookingSummaryProps) {
   const court = courts.find((c) => c.id === selectedSlots.courtId)
   const startTime = selectedSlots.timeSlots[0]
   const endTime = selectedSlots.timeSlots[selectedSlots.timeSlots.length - 1]
@@ -843,9 +824,10 @@ interface SuccessModalProps {
   onOpenChange: (open: boolean) => void
   selectedSlots: { courtId: string; timeSlots: string[]; duration: number; totalPrice: number } | null
   onClose: () => void
+  courts: Court[]
 }
 
-function SuccessModal({ open, onOpenChange, selectedSlots, onClose }: SuccessModalProps) {
+function SuccessModal({ open, onOpenChange, selectedSlots, onClose, courts }: SuccessModalProps) {
   const handleWhatsApp = () => {
     const phone = "79999999999"
     const message = encodeURIComponent("Изменить/Отменить бронирование")
