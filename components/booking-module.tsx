@@ -17,6 +17,7 @@ import { ru } from "date-fns/locale"
 import { Checkbox } from "@/components/ui/checkbox"
 import { TrainerBooking } from "./trainer-booking"
 import { PaymentModal } from "./payment/PaymentModal"
+import { WhatsAppDemoSlide } from "./whatsapp-demo-slide"
 import { ADMIN_COURTS, isSlotOccupied, getAdminSlotPrice } from "@/lib/admin-data"
 
 // Types
@@ -40,6 +41,8 @@ interface BookingState {
   courtTypeFilter: string
   showConfirmation: boolean
   showSuccess: boolean
+  showWhatsAppDemo: boolean
+  customerInfo: { name: string; phone: string } | null
 }
 
 type BookingAction =
@@ -49,6 +52,8 @@ type BookingAction =
   | { type: "SET_COURT_TYPE_FILTER"; payload: string }
   | { type: "SHOW_CONFIRMATION"; payload: boolean }
   | { type: "SHOW_SUCCESS"; payload: boolean }
+  | { type: "SHOW_WHATSAPP_DEMO"; payload: boolean }
+  | { type: "SET_CUSTOMER_INFO"; payload: { name: string; phone: string } }
 
 function bookingReducer(state: BookingState, action: BookingAction): BookingState {
   switch (action.type) {
@@ -150,6 +155,10 @@ function bookingReducer(state: BookingState, action: BookingAction): BookingStat
       return { ...state, showConfirmation: action.payload }
     case "SHOW_SUCCESS":
       return { ...state, showSuccess: action.payload, showConfirmation: false }
+    case "SHOW_WHATSAPP_DEMO":
+      return { ...state, showWhatsAppDemo: action.payload, showSuccess: false }
+    case "SET_CUSTOMER_INFO":
+      return { ...state, customerInfo: action.payload }
     default:
       return state
   }
@@ -196,6 +205,8 @@ export function BookingModule({ onClose }: BookingModuleProps) {
     courtTypeFilter: "all",
     showConfirmation: false,
     showSuccess: false,
+    showWhatsAppDemo: false,
+    customerInfo: null,
   })
 
   const [activeTab, setActiveTab] = useState("courts")
@@ -217,6 +228,10 @@ export function BookingModule({ onClose }: BookingModuleProps) {
 
   const onSuccess = () => {
     dispatch({ type: "SHOW_SUCCESS", payload: true })
+  }
+
+  const onWhatsAppDemo = () => {
+    dispatch({ type: "SHOW_WHATSAPP_DEMO", payload: true })
   }
 
   useEffect(() => {
@@ -247,6 +262,21 @@ export function BookingModule({ onClose }: BookingModuleProps) {
   })
 
   const canBook = state.selectedSlots && state.selectedSlots.duration >= 60
+
+  // Create booking details for WhatsApp demo
+  const bookingDetails =
+    state.selectedSlots && state.customerInfo
+      ? {
+          courtId: state.selectedSlots.courtId,
+          courtName: courts.find((c) => c.id === state.selectedSlots.courtId)?.name || "",
+          timeSlots: state.selectedSlots.timeSlots,
+          duration: state.selectedSlots.duration,
+          totalPrice: state.selectedSlots.totalPrice,
+          date: state.selectedDate,
+          customerName: state.customerInfo.name,
+          customerPhone: state.customerInfo.phone,
+        }
+      : null
 
   return (
     <>
@@ -405,6 +435,7 @@ export function BookingModule({ onClose }: BookingModuleProps) {
             onSuccess={onSuccess}
             setPaymentData={setPaymentData}
             setShowPayment={setShowPayment}
+            onCustomerInfo={(info) => dispatch({ type: "SET_CUSTOMER_INFO", payload: info })}
           />
         )}
 
@@ -415,6 +446,7 @@ export function BookingModule({ onClose }: BookingModuleProps) {
             onOpenChange={(open) => dispatch({ type: "SHOW_SUCCESS", payload: open })}
             selectedSlots={state.selectedSlots}
             onClose={onClose}
+            onWhatsAppDemo={onWhatsAppDemo}
             courts={courts}
           />
         )}
@@ -433,6 +465,10 @@ export function BookingModule({ onClose }: BookingModuleProps) {
           }}
         />
       </div>
+
+      {/* WhatsApp Demo Slide */}
+      <WhatsAppDemoSlide open={state.showWhatsAppDemo} onClose={onClose} bookingDetails={bookingDetails} />
+
       <Toaster />
     </>
   )
@@ -665,7 +701,7 @@ function BookingSummary({ selectedSlots, selectedDate, onNext, allTimeSlots, cou
       </div>
 
       <Button onClick={onNext} className="w-full bg-[#4285f4] hover:bg-[#3367d6] h-12 text-base font-medium">
-        Забронировать
+        З��бронировать
       </Button>
     </div>
   )
@@ -679,6 +715,7 @@ interface ConfirmationModalProps {
   onSuccess: () => void
   setPaymentData: (data: any) => void
   setShowPayment: (show: boolean) => void
+  onCustomerInfo: (info: { name: string; phone: string }) => void
 }
 
 function ConfirmationModal({
@@ -688,6 +725,7 @@ function ConfirmationModal({
   onSuccess,
   setPaymentData,
   setShowPayment,
+  onCustomerInfo,
 }: ConfirmationModalProps) {
   const [name, setName] = useState("")
   const [phone, setPhone] = useState("")
@@ -703,6 +741,9 @@ function ConfirmationModal({
       })
       return
     }
+
+    // Save customer info
+    onCustomerInfo({ name, phone })
 
     if (paymentMethod === "online") {
       setPaymentData({
@@ -825,9 +866,22 @@ interface SuccessModalProps {
   selectedSlots: { courtId: string; timeSlots: string[]; duration: number; totalPrice: number } | null
   onClose: () => void
   courts: Court[]
+  onWhatsAppDemo: () => void
 }
 
-function SuccessModal({ open, onOpenChange, selectedSlots, onClose, courts }: SuccessModalProps) {
+function SuccessModal({ open, onOpenChange, selectedSlots, onClose, onWhatsAppDemo, courts }: SuccessModalProps) {
+  const [showWhatsAppButton, setShowWhatsAppButton] = useState(false)
+
+  // Show WhatsApp demo button after 3 seconds
+  useEffect(() => {
+    if (open) {
+      const timer = setTimeout(() => {
+        setShowWhatsAppButton(true)
+      }, 3000)
+      return () => clearTimeout(timer)
+    }
+  }, [open])
+
   const handleWhatsApp = () => {
     const phone = "79999999999"
     const message = encodeURIComponent("Изменить/Отменить бронирование")
@@ -846,7 +900,8 @@ function SuccessModal({ open, onOpenChange, selectedSlots, onClose, courts }: Su
     endDate.setMinutes(endDate.getMinutes() + selectedSlots.duration)
 
     const title = court?.name || ""
-    const details = `Адрес: ул. Спортивная, 15\nПокрытие: ${court?.type}`
+    const details = `Адрес: ул. Спортивная, 15
+Покрытие: ${court?.type}`
 
     const googleCalendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${startDate.toISOString().replace(/[-:]/g, "").split(".")[0]}Z/${endDate.toISOString().replace(/[-:]/g, "").split(".")[0]}Z&details=${encodeURIComponent(details)}`
 
@@ -900,6 +955,15 @@ function SuccessModal({ open, onOpenChange, selectedSlots, onClose, courts }: Su
           </svg>
           Изменить/Отменить
         </Button>
+
+        {showWhatsAppButton && (
+          <Button
+            onClick={onWhatsAppDemo}
+            className="w-full bg-purple-600 hover:bg-purple-700 h-12 text-base animate-pulse"
+          >
+            📱 Посмотреть уведомление клиенту
+          </Button>
+        )}
 
         <Button variant="outline" onClick={onClose} className="w-full bg-white h-12 text-base">
           Закрыть
