@@ -701,7 +701,7 @@ function BookingSummary({ selectedSlots, selectedDate, onNext, allTimeSlots, cou
       </div>
 
       <Button onClick={onNext} className="w-full bg-[#4285f4] hover:bg-[#3367d6] h-12 text-base font-medium">
-        З��бронировать
+        Забронировать
       </Button>
     </div>
   )
