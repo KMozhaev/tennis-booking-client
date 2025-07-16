@@ -44,7 +44,7 @@ export function DemoPresentation({ onComplete }: DemoPresentationProps) {
     if (currentSlide === 0) {
       const timer = setTimeout(() => {
         nextSlide()
-      }, 8000)
+      }, 16000)
       return () => clearTimeout(timer)
     }
   }, [currentSlide])
