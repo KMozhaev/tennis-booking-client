@@ -24,9 +24,12 @@ export const generateHourlyTimeSlots = (): string[] => {
 }
 
 // Pricing logic per PRD specifications
-export const calculateSlotPrice = (time: string, date: Date): number => {
+export const calculateSlotPrice = (time: string, date: Date | string): number => {
   const hour = Number.parseInt(time.split(":")[0])
-  const dayOfWeek = date.getDay()
+
+  // Convert string to Date if needed
+  const dateObj = typeof date === "string" ? new Date(date) : date
+  const dayOfWeek = dateObj.getDay()
   const isWeekend = dayOfWeek === 0 || dayOfWeek === 6
 
   if (isWeekend) {

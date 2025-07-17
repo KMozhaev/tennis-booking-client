@@ -186,7 +186,7 @@ const generateCourts = (selectedDate: Date): Court[] => {
     slots: timeSlots.map(({ time }) => ({
       time,
       available: !isSlotOccupied(adminCourt.id, dateString, time),
-      price: getAdminSlotPrice(adminCourt.id, dateString, time),
+      price: getAdminSlotPrice(adminCourt.id, time, selectedDate), // Pass Date object instead of string
     })),
   }))
 }
