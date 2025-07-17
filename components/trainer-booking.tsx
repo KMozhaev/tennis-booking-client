@@ -39,6 +39,7 @@ const trainers: Trainer[] = [
   {
     id: 1,
     name: "Харлампий Иванович Кивелиди",
+    description: "Главный тренер клуба",
     experienceYears: 20+,
     priceFor90min: 2250,
     rating: 4.9,
@@ -46,6 +47,7 @@ const trainers: Trainer[] = [
   {
     id: 2,
     name: "Александр Александрович Левченко",
+    description: "Стаж преподавания за границей более 5 лет",
     experienceYears: 25+,
     priceFor90min: 2500,
     rating: 4.8,
@@ -53,6 +55,7 @@ const trainers: Trainer[] = [
   {
     id: 3,
     name: "Никита Владимирович Шорин",
+    description: "Тренирует детей и взрослых. Большой опыт работы спаринг-партнером",
     experienceYears: 5,
     priceFor90min: 2000,
     rating: 4.7,
