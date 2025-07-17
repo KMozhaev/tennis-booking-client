@@ -136,7 +136,7 @@ function bookingReducer(state: BookingState, action: BookingAction): BookingStat
             selectedSlots: {
               courtId,
               timeSlots,
-              duration: timeSlots.length * 60,
+              duration: timeSlots.length * 60, // Changed from 30 to 60 minutes
               totalPrice,
             },
           }
@@ -164,16 +164,17 @@ function bookingReducer(state: BookingState, action: BookingAction): BookingStat
   }
 }
 
-// Generate hourly time slots (7:00-23:00) per PRD
+// Generate time slots
 const generateTimeSlots = (): { time: string }[] => {
   const slots: { time: string }[] = []
   for (let hour = 7; hour <= 23; hour++) {
-    slots.push({ time: `${hour.toString().padStart(2, "0")}:00` })
+    const time = `${hour.toString().padStart(2, "0")}:00`
+    slots.push({ time })
   }
   return slots
 }
 
-// Generate courts with new hourly pricing structure
+// Generate courts with admin data synchronization
 const generateCourts = (selectedDate: Date): Court[] => {
   const dateString = format(selectedDate, "yyyy-MM-dd")
   const timeSlots = generateTimeSlots()
@@ -186,7 +187,7 @@ const generateCourts = (selectedDate: Date): Court[] => {
     slots: timeSlots.map(({ time }) => ({
       time,
       available: !isSlotOccupied(adminCourt.id, dateString, time),
-      price: getAdminSlotPrice(adminCourt.id, time, selectedDate), // Pass Date object instead of string
+      price: getAdminSlotPrice(adminCourt.id, time, selectedDate),
     })),
   }))
 }
@@ -255,10 +256,9 @@ export function BookingModule({ onClose }: BookingModuleProps) {
 
   const filteredCourts = courts.filter((court) => {
     if (state.courtTypeFilter === "all") return true
-    return court.id === state.courtTypeFilter
+    return court.type === state.courtTypeFilter
   })
 
-  // Update minimum booking duration to 60 minutes (1 hour)
   const canBook = state.selectedSlots && state.selectedSlots.duration >= 60
 
   // Create booking details for WhatsApp demo
@@ -311,11 +311,9 @@ export function BookingModule({ onClose }: BookingModuleProps) {
                 className="px-3 py-2 border border-gray-300 rounded-md bg-white"
               >
                 <option value="all">Все корты</option>
-                {ADMIN_COURTS.map((court) => (
-                  <option key={court.id} value={court.id}>
-                    {court.name}
-                  </option>
-                ))}
+                <option value="hard">Хард</option>
+                <option value="clay">Грунт</option>
+                <option value="indoor">Крытый</option>
               </select>
             </div>
           </div>
@@ -401,8 +399,7 @@ export function BookingModule({ onClose }: BookingModuleProps) {
             <div className="flex items-center justify-between">
               <div>
                 <div className="font-semibold">
-                  {Math.round(state.selectedSlots.duration / 60)} час{state.selectedSlots.duration > 60 ? "а" : ""} •{" "}
-                  {state.selectedSlots.totalPrice}₽
+                  {state.selectedSlots.duration} мин • {state.selectedSlots.totalPrice}₽
                 </div>
                 <div className="text-sm text-gray-600">
                   {courts.find((c) => c.id === state.selectedSlots?.courtId)?.name}
@@ -418,11 +415,11 @@ export function BookingModule({ onClose }: BookingModuleProps) {
           </div>
         )}
 
-        {/* Update minimum booking validation */}
+        {/* Show minimum booking message when selection is too short */}
         {isMobile && activeTab === "courts" && state.selectedSlots && state.selectedSlots.duration < 60 && (
           <div className="fixed bottom-0 left-0 right-0 bg-yellow-50 border-t border-yellow-200 p-4 z-50">
             <div className="text-center text-yellow-800">
-              Минимум 1 час • Выберите еще {Math.ceil((60 - state.selectedSlots.duration) / 60)} час(ов)
+              Минимум 1 час • Выберите еще {Math.ceil((60 - state.selectedSlots.duration) / 60)} час(а)
             </div>
           </div>
         )}
@@ -485,6 +482,7 @@ interface CourtBookingViewProps {
   dispatch: React.Dispatch<BookingAction>
 }
 
+// Update the CourtBookingView component to ensure stable positioning and show hourly slots properly
 function CourtBookingView({
   courts,
   timeSlots,
@@ -522,12 +520,6 @@ function CourtBookingView({
     return null
   }
 
-  // Fixed dimensions for consistent layout
-  const slotWidth = isMobile ? 100 : 120
-  const slotHeight = isMobile ? 50 : 60
-  const headerHeight = isMobile ? 40 : 50
-  const timeWidth = isMobile ? 60 : 80
-
   return (
     <div className="h-full overflow-auto">
       <div className="p-4">
@@ -539,136 +531,94 @@ function CourtBookingView({
         </div>
 
         <div className="relative">
+          {/* STABLE GRID: Fixed positioning with consistent keys */}
           <div className="overflow-auto">
             <div
-              className="bg-gray-200 rounded-lg overflow-hidden"
+              className="schedule-grid bg-gray-200 rounded-lg overflow-hidden min-w-max"
               style={{
                 display: "grid",
-                gridTemplateColumns: `${timeWidth}px repeat(${courts.length}, ${slotWidth}px)`,
-                gridTemplateRows: `${headerHeight}px repeat(${timeSlots.length}, ${slotHeight}px)`,
+                gridTemplateColumns: `${isMobile ? "60px" : "80px"} repeat(${courts.length}, ${isMobile ? "120px" : "140px"})`,
+                gridTemplateRows: `${isMobile ? "40px" : "50px"} repeat(${timeSlots.length}, ${isMobile ? "60px" : "70px"})`,
                 gap: 0,
-                minWidth: timeWidth + courts.length * slotWidth,
               }}
             >
-              {/* Corner cell */}
-              <div
-                className="bg-white border-r border-b border-gray-300"
-                style={{
-                  position: "sticky",
-                  top: 0,
-                  left: 0,
-                  zIndex: 30,
-                  width: timeWidth,
-                  height: headerHeight,
-                }}
-              />
+              {/* Sticky corner cell */}
+              <div className="bg-white sticky top-0 left-0 z-20 border-r border-b border-gray-300"></div>
 
-              {/* Court headers */}
-              {courts.map((court, index) => (
+              {/* Sticky court headers */}
+              {courts.map((court) => (
                 <div
-                  key={court.id}
-                  className="bg-white font-medium text-center text-xs flex items-center justify-center border-r border-b border-gray-300"
-                  style={{
-                    position: "sticky",
-                    top: 0,
-                    zIndex: 20,
-                    width: slotWidth,
-                    height: headerHeight,
-                  }}
+                  key={`header-${court.id}`}
+                  className="bg-white font-medium text-center py-2 text-sm flex items-center justify-center sticky top-0 z-10 border-r border-b border-gray-300"
                 >
                   <div className="truncate px-1">{court.name}</div>
                 </div>
               ))}
 
-              {/* Time slots and court slots */}
-              {timeSlots.map((time, timeIndex) => (
-                <React.Fragment key={time}>
-                  {/* Time header */}
-                  <div
-                    className="bg-white text-xs font-medium text-right flex items-center justify-end pr-2 border-r border-b border-gray-300"
-                    style={{
-                      position: "sticky",
-                      left: 0,
-                      zIndex: 10,
-                      width: timeWidth,
-                      height: slotHeight,
-                    }}
-                  >
+              {timeSlots.map((time) => (
+                <React.Fragment key={`row-${time}`}>
+                  {/* Sticky time column */}
+                  <div className="bg-white text-sm font-medium py-2 px-2 text-right flex items-center justify-end sticky left-0 z-10 border-r border-b border-gray-300">
                     {time}
                   </div>
-
-                  {/* Court slots */}
                   {courts.map((court) => {
                     const slot = court.slots.find((s) => s.time === time)
-                    if (!slot) {
+                    if (!slot)
                       return (
-                        <div
-                          key={`${court.id}-${time}`}
-                          className="bg-gray-50 border-r border-b border-gray-300"
-                          style={{ width: slotWidth, height: slotHeight }}
-                        />
+                        <div key={`${court.id}-${time}`} className="bg-gray-50 border-r border-b border-gray-300"></div>
                       )
-                    }
 
                     const isSelected = isSlotSelected(court.id, time)
                     const selectionInfo = getSelectionInfo(court.id, time)
 
                     return (
-                      <div
-                        key={`${court.id}-${time}`}
+                      <button
+                        key={`${court.id}-${time}`} // Stable key for fixed positioning
                         onClick={() => onSlotClick(court.id, time, slot.available)}
+                        disabled={!slot.available}
                         className={`
-                          relative text-xs select-none border-r border-b border-gray-300 cursor-pointer
+                          relative text-sm transition-all duration-150 select-none border-r border-b border-gray-300
                           ${
                             isSelected
                               ? "bg-[#4285f4] text-white"
                               : slot.available
-                                ? "bg-[#f8f9fa] hover:bg-blue-50"
+                                ? "bg-[#f8f9fa] hover:bg-blue-50 hover:shadow-sm border-[#e0e0e0]"
                                 : "bg-[#e0e0e0] text-[#666] cursor-not-allowed"
                           }
                         `}
-                        style={{
-                          width: slotWidth,
-                          height: slotHeight,
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
                       >
                         {slot.available ? (
                           isSelected ? (
                             selectionInfo?.hidePrice ? (
                               // Empty selected slot in group
-                              <div />
+                              <div className="absolute inset-0"></div>
                             ) : selectionInfo ? (
                               // Middle slot with total info
-                              <div className="text-center text-white">
-                                <div className={`${isMobile ? "text-xs" : "text-sm"} font-bold`}>
-                                  {Math.round(selectionInfo.duration / 60)} час{selectionInfo.duration > 60 ? "а" : ""}
-                                </div>
-                                <div className={`${isMobile ? "text-xs" : "text-sm"}`}>{selectionInfo.price}₽</div>
+                              <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
+                                <div className="text-sm font-bold">{Math.floor(selectionInfo.duration / 60)} ч</div>
+                                <div className="text-sm">{selectionInfo.price}₽</div>
                               </div>
                             ) : (
                               // Single selected slot
-                              <div className="text-center text-white">
-                                <div className={`${isMobile ? "text-xs" : "text-sm"} font-medium`}>{slot.price}₽</div>
+                              <div className="absolute inset-1 flex flex-col items-center justify-center text-white">
+                                <div className="text-sm font-medium">{slot.price}₽</div>
                                 <div className="text-xs opacity-80">1 час</div>
                               </div>
                             )
                           ) : (
                             // Available unselected slot
-                            <div className="text-center">
-                              <div className={`${isMobile ? "text-xs" : "text-sm"} font-medium`}>{slot.price}₽</div>
+                            <div className="absolute inset-1 flex flex-col items-center justify-center">
+                              <div className="text-sm font-medium">{slot.price}₽</div>
                               <div className="text-xs opacity-60">1 час</div>
                             </div>
                           )
                         ) : (
                           // Occupied slot
-                          <div className="text-center">
-                            <div className={`${isMobile ? "text-xs" : "text-sm"}`}>Занято</div>
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="text-sm">Занято</div>
                           </div>
                         )}
-                      </div>
+                      </button>
                     )
                   })}
                 </React.Fragment>
@@ -695,7 +645,10 @@ function BookingSummary({ selectedSlots, selectedDate, onNext, allTimeSlots, cou
   const startTime = selectedSlots.timeSlots[0]
   const endTime = selectedSlots.timeSlots[selectedSlots.timeSlots.length - 1]
   const endTimeIndex = allTimeSlots.indexOf(endTime)
-  const endTimeSlot = allTimeSlots[endTimeIndex + 1] || endTime
+  const actualEndTime =
+    endTimeIndex < allTimeSlots.length - 1
+      ? allTimeSlots[endTimeIndex + 1]
+      : `${Number.parseInt(endTime.split(":")[0]) + 1}:00`
 
   return (
     <div className="space-y-4 flex-1">
@@ -712,14 +665,12 @@ function BookingSummary({ selectedSlots, selectedDate, onNext, allTimeSlots, cou
           <div className="flex justify-between">
             <span className="text-gray-600">Время:</span>
             <span className="font-medium">
-              {startTime} - {endTimeSlot}
+              {startTime} - {actualEndTime}
             </span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-600">Длительность:</span>
-            <span className="font-medium">
-              {Math.round(selectedSlots.duration / 60)} час{selectedSlots.duration > 60 ? "а" : ""}
-            </span>
+            <span className="font-medium">{Math.floor(selectedSlots.duration / 60)} час(а)</span>
           </div>
         </div>
 

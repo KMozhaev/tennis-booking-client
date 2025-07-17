@@ -6,7 +6,7 @@ import { DemoPresentation } from "@/components/demo-presentation"
 import { Button } from "@/components/ui/button"
 
 export default function Home() {
-  const [currentView, setCurrentView] = useState<"landing" | "demo" | "booking">("booking")
+  const [currentView, setCurrentView] = useState<"landing" | "demo" | "booking">("landing")
 
   return (
     <main className="min-h-screen bg-gray-100">
