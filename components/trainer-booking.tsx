@@ -52,10 +52,10 @@ const trainers: Trainer[] = [
   },
   {
     id: 3,
-    name: "Елена Смирнова",
-    description: "Начинающие, детский теннис",
-    experienceYears: 6,
-    priceFor90min: 2000,
+    name: "Никита Владимирович Шорин",
+    description: "Тренирует детей и взрослых. Большой опыт работы спаринг-партнером",
+    experienceYears: 5,
+    priceFor90min: 1800,
     rating: 4.7,
   },
 ]
