@@ -522,7 +522,7 @@ function TrainerSuccessModal({
     endDate.setMinutes(endDate.getMinutes() + 90)
 
     const title = `Тренировка с ${trainer.name}`
-    const details = `Тренер: ${trainer.name}\nАдрес: ул. Спортивная, 15\nКорт: ${session.court}\nВключено: корт + ракетки + мячики`
+    const details = `Тренер: ${trainer.name}\nАдрес: Электролитный проезд, д. 3, стр. 2, 4-й этаж\nКорт: ${session.court}\nВключено: корт + ракетки + мячики`
 
     const googleCalendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${startDate.toISOString().replace(/[-:]/g, "").split(".")[0]}Z/${endDate.toISOString().replace(/[-:]/g, "").split(".")[0]}Z&details=${encodeURIComponent(details)}`
 
