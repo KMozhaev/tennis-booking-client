@@ -1,201 +1,4 @@
-// Simplified booking data integration
-interface SimplifiedBookingSlot {
-  courtId: string
-  date: string
-  time: string
-  duration: number
-}
-
-const OCCUPIED_SLOTS: SimplifiedBookingSlot[] = [
-  // JULY 3rd DATA
-  { courtId: "1", date: "2025-07-03", time: "08:00", duration: 60 },
-  { courtId: "1", date: "2025-07-03", time: "08:30", duration: 60 },
-  { courtId: "2", date: "2025-07-03", time: "09:00", duration: 90 },
-  { courtId: "2", date: "2025-07-03", time: "09:30", duration: 90 },
-  { courtId: "2", date: "2025-07-03", time: "10:00", duration: 90 },
-  { courtId: "3", date: "2025-07-03", time: "10:30", duration: 60 },
-  { courtId: "3", date: "2025-07-03", time: "11:00", duration: 60 },
-  { courtId: "4", date: "2025-07-03", time: "11:30", duration: 60 },
-  { courtId: "1", date: "2025-07-03", time: "12:00", duration: 90 },
-  { courtId: "1", date: "2025-07-03", time: "12:30", duration: 90 },
-  { courtId: "1", date: "2025-07-03", time: "13:00", duration: 90 },
-  { courtId: "2", date: "2025-07-03", time: "13:30", duration: 60 },
-  { courtId: "2", date: "2025-07-03", time: "14:00", duration: 60 },
-  { courtId: "3", date: "2025-07-03", time: "14:30", duration: 60 },
-  { courtId: "3", date: "2025-07-03", time: "15:00", duration: 60 },
-  { courtId: "4", date: "2025-07-03", time: "15:30", duration: 90 },
-  { courtId: "4", date: "2025-07-03", time: "16:00", duration: 90 },
-  { courtId: "4", date: "2025-07-03", time: "16:30", duration: 90 },
-  { courtId: "5", date: "2025-07-03", time: "17:00", duration: 60 },
-  { courtId: "5", date: "2025-07-03", time: "17:30", duration: 60 },
-  { courtId: "1", date: "2025-07-03", time: "18:00", duration: 120 },
-  { courtId: "1", date: "2025-07-03", time: "18:30", duration: 120 },
-  { courtId: "1", date: "2025-07-03", time: "19:00", duration: 120 },
-  { courtId: "1", date: "2025-07-03", time: "19:30", duration: 120 },
-  { courtId: "2", date: "2025-07-03", time: "18:30", duration: 90 },
-  { courtId: "2", date: "2025-07-03", time: "19:00", duration: 90 },
-  { courtId: "2", date: "2025-07-03", time: "19:30", duration: 90 },
-  { courtId: "3", date: "2025-07-03", time: "18:00", duration: 60 },
-  { courtId: "3", date: "2025-07-03", time: "18:30", duration: 60 },
-  { courtId: "3", date: "2025-07-03", time: "19:30", duration: 60 },
-  { courtId: "3", date: "2025-07-03", time: "20:00", duration: 60 },
-  { courtId: "4", date: "2025-07-03", time: "19:00", duration: 90 },
-  { courtId: "4", date: "2025-07-03", time: "19:30", duration: 90 },
-  { courtId: "4", date: "2025-07-03", time: "20:00", duration: 90 },
-  { courtId: "5", date: "2025-07-03", time: "18:30", duration: 90 },
-  { courtId: "5", date: "2025-07-03", time: "19:00", duration: 90 },
-  { courtId: "5", date: "2025-07-03", time: "19:30", duration: 90 },
-  { courtId: "5", date: "2025-07-03", time: "20:30", duration: 60 },
-  { courtId: "5", date: "2025-07-03", time: "21:00", duration: 60 },
-  { courtId: "2", date: "2025-07-03", time: "20:30", duration: 60 },
-  { courtId: "2", date: "2025-07-03", time: "21:00", duration: 60 },
-  { courtId: "1", date: "2025-07-03", time: "20:30", duration: 60 },
-  { courtId: "1", date: "2025-07-03", time: "21:00", duration: 60 },
-
-  // JULY 9th DATA
-  { courtId: "1", date: "2025-07-09", time: "08:30", duration: 90 },
-  { courtId: "1", date: "2025-07-09", time: "09:00", duration: 90 },
-  { courtId: "1", date: "2025-07-09", time: "09:30", duration: 90 },
-  { courtId: "2", date: "2025-07-09", time: "10:00", duration: 60 },
-  { courtId: "2", date: "2025-07-09", time: "10:30", duration: 60 },
-  { courtId: "3", date: "2025-07-09", time: "11:30", duration: 60 },
-  { courtId: "4", date: "2025-07-09", time: "13:00", duration: 90 },
-  { courtId: "4", date: "2025-07-09", time: "13:30", duration: 90 },
-  { courtId: "4", date: "2025-07-09", time: "14:00", duration: 90 },
-  { courtId: "5", date: "2025-07-09", time: "14:30", duration: 60 },
-  { courtId: "5", date: "2025-07-09", time: "15:00", duration: 60 },
-  { courtId: "1", date: "2025-07-09", time: "16:00", duration: 60 },
-  { courtId: "1", date: "2025-07-09", time: "16:30", duration: 60 },
-  { courtId: "2", date: "2025-07-09", time: "17:30", duration: 60 },
-  { courtId: "2", date: "2025-07-09", time: "18:00", duration: 60 },
-  { courtId: "3", date: "2025-07-09", time: "18:30", duration: 120 },
-  { courtId: "3", date: "2025-07-09", time: "19:00", duration: 120 },
-  { courtId: "3", date: "2025-07-09", time: "19:30", duration: 120 },
-  { courtId: "3", date: "2025-07-09", time: "20:00", duration: 120 },
-  { courtId: "4", date: "2025-07-09", time: "19:00", duration: 90 },
-  { courtId: "4", date: "2025-07-09", time: "19:30", duration: 90 },
-  { courtId: "4", date: "2025-07-09", time: "20:00", duration: 90 },
-  { courtId: "5", date: "2025-07-09", time: "20:30", duration: 60 },
-  { courtId: "5", date: "2025-07-09", time: "21:00", duration: 60 },
-
-  // JULY 12th DATA
-  { courtId: "1", date: "2025-07-12", time: "08:00", duration: 90 },
-  { courtId: "1", date: "2025-07-12", time: "08:30", duration: 90 },
-  { courtId: "1", date: "2025-07-12", time: "09:00", duration: 90 },
-  { courtId: "2", date: "2025-07-12", time: "09:30", duration: 60 },
-  { courtId: "2", date: "2025-07-12", time: "10:00", duration: 60 },
-  { courtId: "3", date: "2025-07-12", time: "10:30", duration: 120 },
-  { courtId: "3", date: "2025-07-12", time: "11:00", duration: 120 },
-  { courtId: "3", date: "2025-07-12", time: "11:30", duration: 120 },
-  { courtId: "3", date: "2025-07-12", time: "12:00", duration: 120 },
-  { courtId: "4", date: "2025-07-12", time: "11:00", duration: 90 },
-  { courtId: "4", date: "2025-07-12", time: "11:30", duration: 90 },
-  { courtId: "4", date: "2025-07-12", time: "12:00", duration: 90 },
-  { courtId: "5", date: "2025-07-12", time: "12:30", duration: 60 },
-  { courtId: "5", date: "2025-07-12", time: "13:00", duration: 60 },
-  { courtId: "1", date: "2025-07-12", time: "14:00", duration: 90 },
-  { courtId: "1", date: "2025-07-12", time: "14:30", duration: 90 },
-  { courtId: "1", date: "2025-07-12", time: "15:00", duration: 90 },
-  { courtId: "2", date: "2025-07-12", time: "15:30", duration: 60 },
-  { courtId: "2", date: "2025-07-12", time: "16:00", duration: 60 },
-  { courtId: "3", date: "2025-07-12", time: "16:30", duration: 60 },
-  { courtId: "3", date: "2025-07-12", time: "17:00", duration: 60 },
-  { courtId: "4", date: "2025-07-12", time: "17:30", duration: 90 },
-  { courtId: "4", date: "2025-07-12", time: "18:00", duration: 90 },
-  { courtId: "4", date: "2025-07-12", time: "18:30", duration: 90 },
-  { courtId: "5", date: "2025-07-12", time: "19:00", duration: 90 },
-  { courtId: "5", date: "2025-07-12", time: "19:30", duration: 90 },
-  { courtId: "5", date: "2025-07-12", time: "20:00", duration: 90 },
-  { courtId: "1", date: "2025-07-12", time: "20:30", duration: 60 },
-  { courtId: "1", date: "2025-07-12", time: "21:00", duration: 60 },
-  { courtId: "2", date: "2025-07-12", time: "20:00", duration: 90 },
-  { courtId: "2", date: "2025-07-12", time: "20:30", duration: 90 },
-  { courtId: "2", date: "2025-07-12", time: "21:00", duration: 90 },
-
-  // JULY 14th DATA
-  { courtId: "2", date: "2025-07-14", time: "08:00", duration: 60 },
-  { courtId: "2", date: "2025-07-14", time: "08:30", duration: 60 },
-  { courtId: "3", date: "2025-07-14", time: "09:00", duration: 60 },
-  { courtId: "3", date: "2025-07-14", time: "09:30", duration: 60 },
-  { courtId: "4", date: "2025-07-14", time: "10:30", duration: 90 },
-  { courtId: "4", date: "2025-07-14", time: "11:00", duration: 90 },
-  { courtId: "4", date: "2025-07-14", time: "11:30", duration: 90 },
-  { courtId: "5", date: "2025-07-14", time: "11:00", duration: 90 },
-  { courtId: "5", date: "2025-07-14", time: "11:30", duration: 90 },
-  { courtId: "5", date: "2025-07-14", time: "12:00", duration: 90 },
-  { courtId: "1", date: "2025-07-14", time: "13:30", duration: 90 },
-  { courtId: "1", date: "2025-07-14", time: "14:00", duration: 90 },
-  { courtId: "1", date: "2025-07-14", time: "14:30", duration: 90 },
-  { courtId: "2", date: "2025-07-14", time: "15:00", duration: 60 },
-  { courtId: "2", date: "2025-07-14", time: "15:30", duration: 60 },
-  { courtId: "3", date: "2025-07-14", time: "16:00", duration: 90 },
-  { courtId: "3", date: "2025-07-14", time: "16:30", duration: 90 },
-  { courtId: "3", date: "2025-07-14", time: "17:00", duration: 90 },
-  { courtId: "4", date: "2025-07-14", time: "17:30", duration: 120 },
-  { courtId: "4", date: "2025-07-14", time: "18:00", duration: 120 },
-  { courtId: "4", date: "2025-07-14", time: "18:30", duration: 120 },
-  { courtId: "4", date: "2025-07-14", time: "19:00", duration: 120 },
-  { courtId: "5", date: "2025-07-14", time: "18:30", duration: 60 },
-  { courtId: "5", date: "2025-07-14", time: "19:00", duration: 60 },
-  { courtId: "1", date: "2025-07-14", time: "19:30", duration: 90 },
-  { courtId: "1", date: "2025-07-14", time: "20:00", duration: 90 },
-  { courtId: "1", date: "2025-07-14", time: "20:30", duration: 90 },
-  { courtId: "2", date: "2025-07-14", time: "20:00", duration: 60 },
-  { courtId: "2", date: "2025-07-14", time: "20:30", duration: 60 },
-  { courtId: "3", date: "2025-07-14", time: "21:00", duration: 60 },
-  { courtId: "3", date: "2025-07-14", time: "21:30", duration: 60 },
-
-  // JULY 17th DATA
-  { courtId: "1", date: "2025-07-17", time: "08:30", duration: 90 },
-  { courtId: "1", date: "2025-07-17", time: "09:00", duration: 90 },
-  { courtId: "1", date: "2025-07-17", time: "09:30", duration: 90 },
-  { courtId: "2", date: "2025-07-17", time: "10:00", duration: 60 },
-  { courtId: "2", date: "2025-07-17", time: "10:30", duration: 60 },
-  { courtId: "3", date: "2025-07-17", time: "11:00", duration: 60 },
-  { courtId: "3", date: "2025-07-17", time: "11:30", duration: 60 },
-  { courtId: "4", date: "2025-07-17", time: "12:00", duration: 60 },
-  { courtId: "5", date: "2025-07-17", time: "12:30", duration: 90 },
-  { courtId: "5", date: "2025-07-17", time: "13:00", duration: 90 },
-  { courtId: "5", date: "2025-07-17", time: "13:30", duration: 90 },
-  { courtId: "1", date: "2025-07-17", time: "14:30", duration: 60 },
-  { courtId: "1", date: "2025-07-17", time: "15:00", duration: 60 },
-  { courtId: "2", date: "2025-07-17", time: "15:30", duration: 90 },
-  { courtId: "2", date: "2025-07-17", time: "16:00", duration: 90 },
-  { courtId: "2", date: "2025-07-17", time: "16:30", duration: 90 },
-  { courtId: "3", date: "2025-07-17", time: "17:00", duration: 60 },
-  { courtId: "3", date: "2025-07-17", time: "17:30", duration: 60 },
-  { courtId: "4", date: "2025-07-17", time: "18:00", duration: 120 },
-  { courtId: "4", date: "2025-07-17", time: "18:30", duration: 120 },
-  { courtId: "4", date: "2025-07-17", time: "19:00", duration: 120 },
-  { courtId: "4", date: "2025-07-17", time: "19:30", duration: 120 },
-  { courtId: "5", date: "2025-07-17", time: "18:30", duration: 90 },
-  { courtId: "5", date: "2025-07-17", time: "19:00", duration: 90 },
-  { courtId: "5", date: "2025-07-17", time: "19:30", duration: 90 },
-  { courtId: "1", date: "2025-07-17", time: "20:00", duration: 60 },
-  { courtId: "1", date: "2025-07-17", time: "20:30", duration: 60 },
-  { courtId: "2", date: "2025-07-17", time: "20:30", duration: 60 },
-  { courtId: "2", date: "2025-07-17", time: "21:00", duration: 60 },
-  { courtId: "3", date: "2025-07-17", time: "21:00", duration: 60 },
-  { courtId: "3", date: "2025-07-17", time: "21:30", duration: 60 },
-]
-
-// Keep existing interfaces for compatibility
-export interface AdminBookingSlot {
-  id: string
-  courtId: string
-  date: string
-  time: string
-  status: "free" | "court_paid" | "court_unpaid" | "training_paid" | "training_unpaid" | "trainer_reserved" | "blocked"
-  clientName?: string
-  clientPhone?: string
-  clientEmail?: string
-  trainerName?: string
-  price?: number
-  duration?: number
-  notes?: string
-  blockReason?: string
-}
-
+// Updated court configuration per PRD
 export interface AdminCourt {
   id: string
   name: string
@@ -203,49 +6,84 @@ export interface AdminCourt {
   basePrice: number
 }
 
-// Admin panel courts data
+// New courts with international city names
 export const ADMIN_COURTS: AdminCourt[] = [
-  { id: "1", name: "Корт 1 (Хард)", type: "hard", basePrice: 600 },
-  { id: "2", name: "Корт 2 (Хард)", type: "hard", basePrice: 480 },
-  { id: "3", name: "Корт 3 (Грунт)", type: "clay", basePrice: 720 },
-  { id: "4", name: "Корт 4 (Грунт)", type: "clay", basePrice: 600 },
-  { id: "5", name: "Корт 5 (Крытый)", type: "indoor", basePrice: 480 },
+  { id: "1", name: "Мельбурн", type: "hard", basePrice: 2100 },
+  { id: "2", name: "Париж", type: "clay", basePrice: 2100 },
+  { id: "3", name: "Лондон", type: "hard", basePrice: 2100 },
+  { id: "4", name: "Нью-Йорк", type: "indoor", basePrice: 2100 },
 ]
 
-// Utility functions for admin data integration
-export const isSlotOccupied = (courtId: string, date: string, time: string): boolean => {
-  return OCCUPIED_SLOTS.some((slot) => slot.courtId === courtId && slot.date === date && slot.time === time)
+// Generate hourly time slots (7:00-23:00)
+export const generateHourlyTimeSlots = (): string[] => {
+  const slots: string[] = []
+  for (let hour = 7; hour <= 23; hour++) {
+    slots.push(`${hour.toString().padStart(2, "0")}:00`)
+  }
+  return slots
 }
 
-export const getAdminSlotPrice = (courtId: string, time: string): number => {
-  const court = ADMIN_COURTS.find((c) => c.id === courtId)
-  if (!court) return 0
-
+// Pricing logic per PRD specifications
+export const calculateSlotPrice = (time: string, date: Date): number => {
   const hour = Number.parseInt(time.split(":")[0])
-  let multiplier = 1.0
+  const dayOfWeek = date.getDay()
+  const isWeekend = dayOfWeek === 0 || dayOfWeek === 6
 
-  // Time-based pricing from admin system
-  if (hour >= 8 && hour < 16) {
-    multiplier = 0.8 // off-peak
-  } else if (hour >= 16 && hour < 19) {
-    multiplier = 1.0 // standard
-  } else if (hour >= 19 && hour < 22) {
-    multiplier = 1.3 // peak
+  if (isWeekend) {
+    return 2100 // Flat rate for weekends
   }
 
-  return Math.round(court.basePrice * multiplier)
+  // Weekday pricing
+  if ((hour >= 7 && hour < 17) || (hour >= 22 && hour <= 23)) {
+    return 2100 // Off-peak
+  } else if (hour >= 17 && hour < 22) {
+    return 2300 // Peak
+  }
+
+  return 2100 // Default fallback
 }
 
-export const getOccupancyRate = (date: string): number => {
-  const totalSlots = ADMIN_COURTS.length * 28 // 28 time slots per day
-  const occupiedSlots = OCCUPIED_SLOTS.filter((slot) => slot.date === date).length
+// Generate random occupancy (60-70% as specified)
+export const generateOccupiedSlots = (date: string, targetOccupancy = 0.65): string[] => {
+  const occupiedSlots: string[] = []
+  const timeSlots = generateHourlyTimeSlots()
 
+  ADMIN_COURTS.forEach((court) => {
+    timeSlots.forEach((timeSlot) => {
+      if (Math.random() < targetOccupancy) {
+        occupiedSlots.push(`${court.id}-${timeSlot}`)
+      }
+    })
+  })
+
+  return occupiedSlots
+}
+
+// Check if slot is occupied
+export const isSlotOccupied = (courtId: string, date: string, time: string): boolean => {
+  const occupiedSlots = generateOccupiedSlots(date)
+  return occupiedSlots.includes(`${courtId}-${time}`)
+}
+
+// Get slot price (wrapper for calculateSlotPrice)
+export const getAdminSlotPrice = (courtId: string, time: string, date: Date = new Date()): number => {
+  return calculateSlotPrice(time, date)
+}
+
+// Utility functions for compatibility
+export const getOccupancyRate = (date: string): number => {
+  const totalSlots = ADMIN_COURTS.length * generateHourlyTimeSlots().length
+  const occupiedSlots = generateOccupiedSlots(date).length
   return Math.round((occupiedSlots / totalSlots) * 100)
 }
 
 export const getDailyRevenue = (date: string): number => {
-  return OCCUPIED_SLOTS.filter((slot) => slot.date === date).reduce((sum, slot) => {
-    const price = getAdminSlotPrice(slot.courtId, slot.time)
+  const occupiedSlots = generateOccupiedSlots(date)
+  const dateObj = new Date(date)
+
+  return occupiedSlots.reduce((sum, slotKey) => {
+    const [courtId, time] = slotKey.split("-")
+    const price = calculateSlotPrice(time, dateObj)
     return sum + price
   }, 0)
 }

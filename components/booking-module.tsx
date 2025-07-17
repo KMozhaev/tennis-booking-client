@@ -72,7 +72,7 @@ function bookingReducer(state: BookingState, action: BookingAction): BookingStat
           selectedSlots: {
             courtId,
             timeSlots: [timeSlot],
-            duration: 30,
+            duration: 60, // Changed from 30 to 60 minutes
             totalPrice: slot.price,
           },
         }
@@ -110,7 +110,7 @@ function bookingReducer(state: BookingState, action: BookingAction): BookingStat
             selectedSlots: {
               courtId,
               timeSlots: newTimeSlots,
-              duration: newTimeSlots.length * 30,
+              duration: newTimeSlots.length * 60, // Changed from 30 to 60 minutes
               totalPrice,
             },
           }
@@ -136,7 +136,7 @@ function bookingReducer(state: BookingState, action: BookingAction): BookingStat
             selectedSlots: {
               courtId,
               timeSlots,
-              duration: timeSlots.length * 30,
+              duration: timeSlots.length * 60,
               totalPrice,
             },
           }
@@ -164,19 +164,16 @@ function bookingReducer(state: BookingState, action: BookingAction): BookingStat
   }
 }
 
-// Generate time slots
+// Generate hourly time slots (7:00-23:00) per PRD
 const generateTimeSlots = (): { time: string }[] => {
   const slots: { time: string }[] = []
-  for (let hour = 8; hour < 22; hour++) {
-    for (let minute = 0; minute < 60; minute += 30) {
-      const time = `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`
-      slots.push({ time })
-    }
+  for (let hour = 7; hour <= 23; hour++) {
+    slots.push({ time: `${hour.toString().padStart(2, "0")}:00` })
   }
   return slots
 }
 
-// Generate courts with admin data synchronization
+// Generate courts with new hourly pricing structure
 const generateCourts = (selectedDate: Date): Court[] => {
   const dateString = format(selectedDate, "yyyy-MM-dd")
   const timeSlots = generateTimeSlots()
@@ -189,7 +186,7 @@ const generateCourts = (selectedDate: Date): Court[] => {
     slots: timeSlots.map(({ time }) => ({
       time,
       available: !isSlotOccupied(adminCourt.id, dateString, time),
-      price: getAdminSlotPrice(adminCourt.id, time),
+      price: getAdminSlotPrice(adminCourt.id, dateString, time),
     })),
   }))
 }
@@ -261,6 +258,7 @@ export function BookingModule({ onClose }: BookingModuleProps) {
     return court.type === state.courtTypeFilter
   })
 
+  // Update minimum booking duration to 60 minutes (1 hour)
   const canBook = state.selectedSlots && state.selectedSlots.duration >= 60
 
   // Create booking details for WhatsApp demo
@@ -401,7 +399,8 @@ export function BookingModule({ onClose }: BookingModuleProps) {
             <div className="flex items-center justify-between">
               <div>
                 <div className="font-semibold">
-                  {state.selectedSlots.duration} мин • {state.selectedSlots.totalPrice}₽
+                  {Math.round(state.selectedSlots.duration / 60)} час{state.selectedSlots.duration > 60 ? "а" : ""} •{" "}
+                  {state.selectedSlots.totalPrice}₽
                 </div>
                 <div className="text-sm text-gray-600">
                   {courts.find((c) => c.id === state.selectedSlots?.courtId)?.name}
@@ -417,11 +416,11 @@ export function BookingModule({ onClose }: BookingModuleProps) {
           </div>
         )}
 
-        {/* Show minimum booking message when selection is too short */}
+        {/* Update minimum booking validation */}
         {isMobile && activeTab === "courts" && state.selectedSlots && state.selectedSlots.duration < 60 && (
           <div className="fixed bottom-0 left-0 right-0 bg-yellow-50 border-t border-yellow-200 p-4 z-50">
             <div className="text-center text-yellow-800">
-              Минимум 60 минут • Выберите еще {Math.ceil((60 - state.selectedSlots.duration) / 30)} слот(а)
+              Минимум 1 час • Выберите еще {Math.ceil((60 - state.selectedSlots.duration) / 60)} час(ов)
             </div>
           </div>
         )}
@@ -547,7 +546,7 @@ function CourtBookingView({
         <div className="mb-4">
           <div className="text-sm text-gray-600 bg-blue-50 p-3 rounded-lg flex items-center gap-2">
             <div className="w-3 h-3 bg-[#4285f4] rounded"></div>
-            <div class="w-3 h-3 bg-[#4285f4] rounded"></div>Нажмите на слоты для выбора времени • Минимум 60 минут
+            <div class="w-3 h-3 bg-[#4285f4] rounded"></div>Нажмите на слоты для выбора времени • Минимум 1 час
           </div>
         </div>
 
@@ -617,7 +616,7 @@ function CourtBookingView({
                               // Middle slot with total info
                               <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
                                 <div className={`${isMobile ? "text-xs" : "text-sm"} font-bold`}>
-                                  {selectionInfo.duration} мин
+                                  {Math.round(selectionInfo.duration / 60)} час{selectionInfo.duration > 60 ? "а" : ""}
                                 </div>
                                 <div className={`${isMobile ? "text-xs" : "text-sm"}`}>{selectionInfo.price}₽</div>
                               </div>
@@ -625,14 +624,14 @@ function CourtBookingView({
                               // Single selected slot
                               <div className="absolute inset-1 flex flex-col items-center justify-center text-white">
                                 <div className={`${isMobile ? "text-xs" : "text-sm"} font-medium`}>{slot.price}₽</div>
-                                <div className="text-xs opacity-80">30 мин</div>
+                                <div className="text-xs opacity-80">1 час</div>
                               </div>
                             )
                           ) : (
                             // Available unselected slot
                             <div className="absolute inset-1 flex flex-col items-center justify-center">
                               <div className={`${isMobile ? "text-xs" : "text-sm"} font-medium`}>{slot.price}₽</div>
-                              <div className="text-xs opacity-60">30 мин</div>
+                              <div className="text-xs opacity-60">1 час</div>
                             </div>
                           )
                         ) : (
@@ -690,7 +689,9 @@ function BookingSummary({ selectedSlots, selectedDate, onNext, allTimeSlots, cou
           </div>
           <div className="flex justify-between">
             <span className="text-gray-600">Длительность:</span>
-            <span className="font-medium">{selectedSlots.duration} минут</span>
+            <span className="font-medium">
+              {Math.round(selectedSlots.duration / 60)} час{selectedSlots.duration > 60 ? "а" : ""}
+            </span>
           </div>
         </div>
 
