@@ -197,7 +197,7 @@ export function WhatsAppDemoSlide({ open, onClose, bookingDetails }: WhatsAppDem
                       <div className="mb-3">
                         📍 <strong>Адрес клуба:</strong> г. Москва,
                         <br />
-                        ул. Спортивная, 15
+                        Электролитный проезд, д. 3, строение 2,  4-й этаж
                         <br />
                         <span className="text-blue-600 underline text-xs">
                           Проложить маршрут: https://yandex.ru/maps/...
