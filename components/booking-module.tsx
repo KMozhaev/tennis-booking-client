@@ -522,106 +522,127 @@ function CourtBookingView({
     return null
   }
 
-  // Add this at the top of the CourtBookingView component
-  const styles = `
-  .schedule-grid .time-header {
-    position: sticky;
-    top: 0;
-    background: white;
-    z-index: 20;
-    border-bottom: 1px solid #e0e0e0;
-  }
-
-  .schedule-grid .court-header {
-    position: sticky;
-    left: 0;
-    background: white;
-    z-index: 10;
-    border-right: 1px solid #e0e0e0;
-  }
-`
+  // Fixed dimensions for consistent layout
+  const slotWidth = isMobile ? 100 : 120
+  const slotHeight = isMobile ? 50 : 60
+  const headerHeight = isMobile ? 40 : 50
+  const timeWidth = isMobile ? 60 : 80
 
   return (
     <div className="h-full overflow-auto">
-      <style dangerouslySetInnerHTML={{ __html: styles }} />
       <div className="p-4">
         <div className="mb-4">
           <div className="text-sm text-gray-600 bg-blue-50 p-3 rounded-lg flex items-center gap-2">
             <div className="w-3 h-3 bg-[#4285f4] rounded"></div>
-            <div class="w-3 h-3 bg-[#4285f4] rounded"></div>Нажмите на слоты для выбора времени • Минимум 1 час
+            Нажмите на слоты для выбора времени • Минимум 1 час
           </div>
         </div>
 
         <div className="relative">
-          {/* UNIFIED LAYOUT: Time slots VERTICAL (rows), Courts HORIZONTAL (columns) */}
           <div className="overflow-auto">
             <div
-              className="schedule-grid bg-gray-200 rounded-lg overflow-hidden min-w-max"
+              className="bg-gray-200 rounded-lg overflow-hidden"
               style={{
                 display: "grid",
-                gridTemplateColumns: `${isMobile ? "60px" : "80px"} repeat(${courts.length}, ${isMobile ? "100px" : "120px"})`,
-                gridTemplateRows: `${isMobile ? "40px" : "50px"} repeat(${timeSlots.length}, ${isMobile ? "50px" : "60px"})`,
+                gridTemplateColumns: `${timeWidth}px repeat(${courts.length}, ${slotWidth}px)`,
+                gridTemplateRows: `${headerHeight}px repeat(${timeSlots.length}, ${slotHeight}px)`,
                 gap: 0,
-                position: "relative",
+                minWidth: timeWidth + courts.length * slotWidth,
               }}
             >
-              {/* Sticky corner cell */}
-              <div className="bg-white sticky top-0 left-0 z-20 border-r border-b border-gray-300"></div>
+              {/* Corner cell */}
+              <div
+                className="bg-white border-r border-b border-gray-300"
+                style={{
+                  position: "sticky",
+                  top: 0,
+                  left: 0,
+                  zIndex: 30,
+                  width: timeWidth,
+                  height: headerHeight,
+                }}
+              />
 
-              {/* Sticky court headers */}
-              {courts.map((court) => (
+              {/* Court headers */}
+              {courts.map((court, index) => (
                 <div
                   key={court.id}
-                  className="court-header bg-white font-medium text-center py-2 text-xs flex items-center justify-center sticky top-0 z-10 border-r border-b border-gray-300"
+                  className="bg-white font-medium text-center text-xs flex items-center justify-center border-r border-b border-gray-300"
+                  style={{
+                    position: "sticky",
+                    top: 0,
+                    zIndex: 20,
+                    width: slotWidth,
+                    height: headerHeight,
+                  }}
                 >
-                  <div className="truncate px-1">{isMobile ? court.name.replace(/\s*$$[^)]*$$/, "") : court.name}</div>
+                  <div className="truncate px-1">{court.name}</div>
                 </div>
               ))}
 
-              {timeSlots.map((time) => (
+              {/* Time slots and court slots */}
+              {timeSlots.map((time, timeIndex) => (
                 <React.Fragment key={time}>
-                  {/* Sticky time column */}
-                  <div className="time-header bg-white text-xs font-medium py-2 px-2 text-right flex items-center justify-end sticky left-0 z-10 border-r border-b border-gray-300">
+                  {/* Time header */}
+                  <div
+                    className="bg-white text-xs font-medium text-right flex items-center justify-end pr-2 border-r border-b border-gray-300"
+                    style={{
+                      position: "sticky",
+                      left: 0,
+                      zIndex: 10,
+                      width: timeWidth,
+                      height: slotHeight,
+                    }}
+                  >
                     {time}
                   </div>
+
+                  {/* Court slots */}
                   {courts.map((court) => {
                     const slot = court.slots.find((s) => s.time === time)
-                    if (!slot)
+                    if (!slot) {
                       return (
-                        <div key={`${court.id}-${time}`} className="bg-gray-50 border-r border-b border-gray-300"></div>
+                        <div
+                          key={`${court.id}-${time}`}
+                          className="bg-gray-50 border-r border-b border-gray-300"
+                          style={{ width: slotWidth, height: slotHeight }}
+                        />
                       )
+                    }
 
                     const isSelected = isSlotSelected(court.id, time)
                     const selectionInfo = getSelectionInfo(court.id, time)
 
                     return (
-                      <button
+                      <div
                         key={`${court.id}-${time}`}
                         onClick={() => onSlotClick(court.id, time, slot.available)}
-                        disabled={!slot.available}
                         className={`
-                          relative text-xs select-none border-r border-b border-gray-300 transition-colors duration-150
+                          relative text-xs select-none border-r border-b border-gray-300 cursor-pointer
                           ${
                             isSelected
                               ? "bg-[#4285f4] text-white"
                               : slot.available
-                                ? "bg-[#f8f9fa] hover:bg-blue-50 border-[#e0e0e0]"
+                                ? "bg-[#f8f9fa] hover:bg-blue-50"
                                 : "bg-[#e0e0e0] text-[#666] cursor-not-allowed"
                           }
                         `}
                         style={{
-                          minHeight: isMobile ? "50px" : "60px",
-                          minWidth: isMobile ? "100px" : "120px",
+                          width: slotWidth,
+                          height: slotHeight,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
                         }}
                       >
                         {slot.available ? (
                           isSelected ? (
                             selectionInfo?.hidePrice ? (
                               // Empty selected slot in group
-                              <div className="absolute inset-0"></div>
+                              <div />
                             ) : selectionInfo ? (
                               // Middle slot with total info
-                              <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
+                              <div className="text-center text-white">
                                 <div className={`${isMobile ? "text-xs" : "text-sm"} font-bold`}>
                                   {Math.round(selectionInfo.duration / 60)} час{selectionInfo.duration > 60 ? "а" : ""}
                                 </div>
@@ -629,25 +650,25 @@ function CourtBookingView({
                               </div>
                             ) : (
                               // Single selected slot
-                              <div className="absolute inset-1 flex flex-col items-center justify-center text-white">
+                              <div className="text-center text-white">
                                 <div className={`${isMobile ? "text-xs" : "text-sm"} font-medium`}>{slot.price}₽</div>
                                 <div className="text-xs opacity-80">1 час</div>
                               </div>
                             )
                           ) : (
                             // Available unselected slot
-                            <div className="absolute inset-1 flex flex-col items-center justify-center">
+                            <div className="text-center">
                               <div className={`${isMobile ? "text-xs" : "text-sm"} font-medium`}>{slot.price}₽</div>
                               <div className="text-xs opacity-60">1 час</div>
                             </div>
                           )
                         ) : (
                           // Occupied slot
-                          <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="text-center">
                             <div className={`${isMobile ? "text-xs" : "text-sm"}`}>Занято</div>
                           </div>
                         )}
-                      </button>
+                      </div>
                     )
                   })}
                 </React.Fragment>
