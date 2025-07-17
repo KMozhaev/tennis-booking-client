@@ -920,7 +920,7 @@ function SuccessModal({ open, onOpenChange, selectedSlots, onClose, onWhatsAppDe
         </div>
         <div className="flex justify-between">
           <span className="font-medium text-gray-700">Адрес:</span>
-          <span className="font-semibold">ул. Спортивная, 15</span>
+          <span className="font-semibold"> Электролитный проезд, д. 3, стр. 2, 4-й этаж </span>
         </div>
       </div>
 
