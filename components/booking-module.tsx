@@ -255,7 +255,7 @@ export function BookingModule({ onClose }: BookingModuleProps) {
 
   const filteredCourts = courts.filter((court) => {
     if (state.courtTypeFilter === "all") return true
-    return court.type === state.courtTypeFilter
+    return court.id === state.courtTypeFilter
   })
 
   // Update minimum booking duration to 60 minutes (1 hour)
@@ -311,9 +311,11 @@ export function BookingModule({ onClose }: BookingModuleProps) {
                 className="px-3 py-2 border border-gray-300 rounded-md bg-white"
               >
                 <option value="all">Все корты</option>
-                <option value="hard">Хард</option>
-                <option value="clay">Грунт</option>
-                <option value="indoor">Крытый</option>
+                {ADMIN_COURTS.map((court) => (
+                  <option key={court.id} value={court.id}>
+                    {court.name}
+                  </option>
+                ))}
               </select>
             </div>
           </div>

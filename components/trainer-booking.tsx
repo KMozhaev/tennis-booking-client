@@ -38,7 +38,7 @@ interface ContactInfo {
 const trainers: Trainer[] = [
   {
     id: 1,
-    name: "Анна Петрова",
+    name: "Харлампий Иванович Кивелиди",
     description: "Техника удара, тактика игры",
     experienceYears: 8,
     priceFor90min: 2250,
@@ -46,7 +46,7 @@ const trainers: Trainer[] = [
   },
   {
     id: 2,
-    name: "Михаил Волков",
+    name: "Александр Александрович Левченко",
     description: "Подача, физическая подготовка",
     experienceYears: 12,
     priceFor90min: 2500,
@@ -54,7 +54,7 @@ const trainers: Trainer[] = [
   },
   {
     id: 3,
-    name: "Елена Смирнова",
+    name: "Никита Владимирович Шорин",
     description: "Начинающие, детский теннис",
     experienceYears: 6,
     priceFor90min: 2000,
@@ -194,7 +194,9 @@ function TrainerSelection({ onSelectTrainer }: TrainerSelectionProps) {
       {/* Info Banner */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 flex items-center gap-3">
         <div className="text-blue-600">ℹ️</div>
-        <div className="text-blue-800 text-sm">В указанную стоимость тренировки всё включено — доплачивать за корт, мячики и ракетки не нужно.</div>
+        <div className="text-blue-800 text-sm">
+          В указанную стоимость тренировки всё включено — доплачивать за корт, мячики и ракетки не нужно.
+        </div>
       </div>
 
       <h2 className="text-2xl font-bold mb-6">Выберите тренера</h2>
