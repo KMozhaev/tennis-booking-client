@@ -562,6 +562,7 @@ function CourtBookingView({
                 gridTemplateColumns: `${isMobile ? "60px" : "80px"} repeat(${courts.length}, ${isMobile ? "100px" : "120px"})`,
                 gridTemplateRows: `${isMobile ? "40px" : "50px"} repeat(${timeSlots.length}, ${isMobile ? "50px" : "60px"})`,
                 gap: 0,
+                position: "relative",
               }}
             >
               {/* Sticky corner cell */}
@@ -599,15 +600,19 @@ function CourtBookingView({
                         onClick={() => onSlotClick(court.id, time, slot.available)}
                         disabled={!slot.available}
                         className={`
-                          relative text-xs transition-all duration-150 select-none border-r border-b border-gray-300
+                          relative text-xs select-none border-r border-b border-gray-300 transition-colors duration-150
                           ${
                             isSelected
                               ? "bg-[#4285f4] text-white"
                               : slot.available
-                                ? "bg-[#f8f9fa] hover:bg-blue-50 hover:shadow-sm border-[#e0e0e0]"
+                                ? "bg-[#f8f9fa] hover:bg-blue-50 border-[#e0e0e0]"
                                 : "bg-[#e0e0e0] text-[#666] cursor-not-allowed"
                           }
                         `}
+                        style={{
+                          minHeight: isMobile ? "50px" : "60px",
+                          minWidth: isMobile ? "100px" : "120px",
+                        }}
                       >
                         {slot.available ? (
                           isSelected ? (
