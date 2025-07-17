@@ -56,7 +56,6 @@ const trainers: Trainer[] = [
     description: "Тренирует детей и взрослых. Большой опыт работы спаринг-партнером",
     experienceYears: 5,
     priceFor90min: 1800,
-    rating: 4.7,
   },
 ]
 
