@@ -60,11 +60,11 @@ export function WhatsAppDemoSlide({ open, onClose, bookingDetails }: WhatsAppDem
   const actualEndTime = `${Number.parseInt(endTime.split(":")[0])}:${(Number.parseInt(endTime.split(":")[1]) + 30).toString().padStart(2, "0")}`
 
   const formattedDate = format(bookingDetails.date, "d MMMM (EEEE)", { locale: ru })
-  const courtType = bookingDetails.courtName.includes("Хард")
-    ? "хард"
-    : bookingDetails.courtName.includes("Грунт")
-      ? "грунт"
-      : "крытый"
+  const courtType = bookingDetails.courtName.includes("Мельбурн")
+    ? "Мельбурн"
+    : bookingDetails.courtName.includes("Париж")
+      ? "Париж"
+      : "Лондон"
 
   return (
     <div className="fixed inset-0 bg-black z-50 flex items-center justify-center p-4">
