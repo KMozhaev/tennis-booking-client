@@ -311,9 +311,10 @@ export function BookingModule({ onClose }: BookingModuleProps) {
                 className="px-3 py-2 border border-gray-300 rounded-md bg-white"
               >
                 <option value="all">Все корты</option>
-                <option value="hard">Хард</option>
-                <option value="clay">Грунт</option>
-                <option value="indoor">Крытый</option>
+                <option value="hard">Мельбурн</option>
+                <option value="clay">Париж</option>
+                <option value="indoor">Лондон</option>
+                <option value="indoor">Нью-Йорк</option>
               </select>
             </div>
           </div>
