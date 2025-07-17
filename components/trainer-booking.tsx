@@ -38,19 +38,17 @@ interface ContactInfo {
 const trainers: Trainer[] = [
   {
     id: 1,
-    name: "Анна Петрова",
-    description: "Техника удара, тактика игры",
-    experienceYears: 8,
-    priceFor90min: 2250,
-    rating: 4.9,
+    name: "Харлампий Иванович Кивелиди",
+    description: "главный тренер клуба",
+    experienceYears: 20,
+    priceFor90min: 3000,
   },
   {
     id: 2,
-    name: "Михаил Волков",
-    description: "Подача, физическая подготовка",
-    experienceYears: 12,
+    name: "Александр Александрович Левченко",
+    description: "Большой опыт работы с взрослыми и с детьми",
+    experienceYears: 25,
     priceFor90min: 2500,
-    rating: 4.8,
   },
   {
     id: 3,
