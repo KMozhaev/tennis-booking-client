@@ -284,7 +284,7 @@ export function BookingModule({ onClose }: BookingModuleProps) {
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
           <div className="flex items-center gap-4">
             <div className="w-8 h-8 bg-gray-300 rounded" />
-            <h1 className="text-lg font-semibold">MAJOR</h1>
+            <h1 className="text-lg font-semibold">MAJOR Теннис</h1>
           </div>
           <Button variant="ghost" size="sm" onClick={onClose}>
             <X className="w-4 h-4" />
