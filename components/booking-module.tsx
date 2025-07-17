@@ -881,7 +881,7 @@ function SuccessModal({ open, onOpenChange, selectedSlots, onClose, onWhatsAppDe
     endDate.setMinutes(endDate.getMinutes() + selectedSlots.duration)
 
     const title = court?.name || ""
-    const details = `Адрес: ул. Спортивная, 15
+    const details = `Электролитный проезд, д. 3, стр. 2, 4-й этаж
 Покрытие: ${court?.type}`
 
     const googleCalendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${startDate.toISOString().replace(/[-:]/g, "").split(".")[0]}Z/${endDate.toISOString().replace(/[-:]/g, "").split(".")[0]}Z&details=${encodeURIComponent(details)}`
